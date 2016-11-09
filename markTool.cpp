@@ -112,7 +112,7 @@ void onMouse(int event, int x, int y, int flags, void *param){
 				rectangle(tmp,
 						Point(start.x, start.y),
 						Point(finish.x, finish.y),
-						Scalar( 255, 0, 0));
+						Scalar( 0, 255, 0));
 				imshow("x", tmp);
 			}  
 			break;  
@@ -132,7 +132,16 @@ void showUI(vector<Mat> &imgList){
 	int n = imgList.size();
 
 	for (;;){
-		img = imgList[idx];
+		imgList[idx].copyTo(img);
+
+		for (int i=0; i<rectList[idx].size(); ++i){
+			Rect rect = rectList[idx][i];
+			rectangle(img,
+					Point(rect.x, rect.y),
+					Point(rect.x + rect.width, rect.y + rect.height),
+					Scalar(0, 0, 255));
+
+		}
 
 		double scale = 800.0 / img.rows;
 		int rows = (int) (img.rows * scale);
@@ -159,8 +168,12 @@ void showUI(vector<Mat> &imgList){
 			idx = (idx - 1 + n) % n;
 		else if (key == 27)
 			break;
-		else if (key == 10){
-
+		else if (key == 10 && ok){
+			Rect rect((int) (min(start.x, finish.x) / scale), 
+					  (int) (min(start.y, finish.y) / scale), 
+					  (int) (abs(start.x-finish.x) / scale), 
+					  (int) (abs(start.y-finish.y) / scale));
+			rectList[idx].push_back(rect);
 		}
 
 	}
