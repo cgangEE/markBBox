@@ -58,46 +58,68 @@ bool readFromFile(vector<Mat> &imgList){
 }
 
 
+#define pow(x) ((x)*(x))
+int dis(Point a, Point b){
+	return pow(a.x - b.x) + pow(a.y - b.y);
+}
+
 
 bool draw = false;
-Point cursor;//初始坐标   
-Rect rect;//标记ROI的矩形框
+int ok = 0;
+Point start;
+Point finish;
 Mat img;
+vector<vector<Rect> > rectList;
+int idx = 0;
 
 
 
 void onMouse(int event, int x, int y, int flags, void *param){  
 	switch (event){ 
-		//按下鼠标左键
 		case CV_EVENT_LBUTTONDOWN:          
-			cursor = Point(x, y);  
+			if (!ok)
+				start = Point(x, y);  
+			else {
+				puts("FT");
+				Point now(x, y);
+				if (dis(now, finish) < dis(now, start)){
+					ok = 1;
+					finish = now;
+				} else {
+					ok = 2;
+					start = now;
+				}
+			}
+
 			draw = true;  
 			break;  
-
-			//松开鼠标左键      
 		case CV_EVENT_LBUTTONUP:           
-			if (rect.height > 0 && rect.width > 0){  
-				cout<<rect.x<<' '<<rect.y<<' '<<rect.height<<' '<<rect.width<<endl;
-			}  
+			if (abs(start.x - finish.x)>0 && abs(start.y - finish.y)>0){
+				ok = 1;
+			}
+
 			draw = false;  
 			break;  
-
-			//移动光标
 		case CV_EVENT_MOUSEMOVE:  
 			if (draw){  
+				if (ok <= 1)
+					finish = Point(x, y);
+				else{
+					start = Point(x, y);
+				}
 				Mat tmp;
 				img.copyTo(tmp);
 				rectangle(tmp,
-						Point(cursor.x, cursor.y),
-						Point(x, y),
+						Point(start.x, start.y),
+						Point(finish.x, finish.y),
 						Scalar( 255, 0, 0));
 				imshow("x", tmp);
 			}  
 			break;  
-	}  
-}  
+	}
+}
 
-bool keyIsValid(int key, vector<int> validKeyList = {83, 81, 27}){
+bool keyIsValid(int key, vector<int> validKeyList = {83, 81, 27, 10}){
 	for (int i=0; i<validKeyList.size(); ++i)
 		if (validKeyList[i] == key)
 			return true;
@@ -108,7 +130,6 @@ void showUI(vector<Mat> &imgList){
 	namedWindow("x");
 
 	int n = imgList.size();
-	int idx = 0;
 
 	for (;;){
 		img = imgList[idx];
@@ -120,12 +141,15 @@ void showUI(vector<Mat> &imgList){
 		resize(img, img, size);
 
 		imshow("x", img);
+
+		ok = 0;
 		setMouseCallback("x", onMouse, NULL); 
 
 
 		int key;
 		for(;;){
 			key = waitKey() & 0xff;
+			cout<<key<<endl;
 			if (keyIsValid(key))
 				break;
 		}
@@ -135,6 +159,10 @@ void showUI(vector<Mat> &imgList){
 			idx = (idx - 1 + n) % n;
 		else if (key == 27)
 			break;
+		else if (key == 10){
+
+		}
+
 	}
 }
 
@@ -144,6 +172,7 @@ int main(){
 	readFromFile(imgList);
 	cout<<imgList.size()<<endl;
 
+	rectList = vector<vector<Rect> >(imgList.size());
 	showUI(imgList);
 
 	return 0;
