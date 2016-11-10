@@ -206,11 +206,13 @@ void showUI(vector<Mat> &imgList, int savedIdx){
 
 		destroyAllWindows();
 
-		sprintf(buf, "Image %d, Rect %lu", idx+1, rectList[idx].size());
-		windowName = buf;
+		sprintf(buf, "Image %d", idx+1);
+		if (windowName != string(buf)){
+			windowName = buf;
 
-		namedWindow(windowName);
-		moveWindow(windowName, 0, 0);
+			namedWindow(windowName);
+			moveWindow(windowName, 0, 0);
+		}
 
 		imshow(windowName, img);
 
