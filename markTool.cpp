@@ -72,7 +72,20 @@ Mat img;
 vector<vector<Rect> > rectList;
 int idx = 0;
 
+void saveRectList(){
 
+}
+
+
+void drawRect(){
+	Mat tmp;
+	img.copyTo(tmp);
+	rectangle(tmp,
+			Point(start.x, start.y),
+			Point(finish.x, finish.y),
+			Scalar( 0, 255, 0));
+	imshow("x", tmp);
+}
 
 void onMouse(int event, int x, int y, int flags, void *param){  
 	switch (event){ 
@@ -80,15 +93,26 @@ void onMouse(int event, int x, int y, int flags, void *param){
 			if (!ok)
 				start = Point(x, y);  
 			else {
-				puts("FT");
 				Point now(x, y);
-				if (dis(now, finish) < dis(now, start)){
+				int d1 = abs(x - start.x);
+				int d2 = abs(x - finish.x);
+				int d3 = abs(y - start.y);
+				int d4 = abs(y - finish.y);
+				int mn = min(min(d1, d2), min(d3, d4));
+				if (mn == d1){
 					ok = 1;
-					finish = now;
-				} else {
+					start.x = x;
+				} else if (mn == d2){
 					ok = 2;
-					start = now;
+					finish.x = x;
+				} else if (mn == d3){
+					ok = 3;
+					start.y = y;
+				} else {
+					ok = 4;
+					finish.y = y;
 				}
+				drawRect();
 			}
 
 			draw = true;  
@@ -96,30 +120,22 @@ void onMouse(int event, int x, int y, int flags, void *param){
 		case CV_EVENT_LBUTTONUP:           
 			if (abs(start.x - finish.x)>0 && abs(start.y - finish.y)>0){
 				ok = 1;
+				puts("FT");
 			}
 
 			draw = false;  
 			break;  
 		case CV_EVENT_MOUSEMOVE:  
 			if (draw){  
-				if (ok <= 1)
+				if (ok == 0)
 					finish = Point(x, y);
-				else{
-					start = Point(x, y);
-				}
-				Mat tmp;
-				img.copyTo(tmp);
-				rectangle(tmp,
-						Point(start.x, start.y),
-						Point(finish.x, finish.y),
-						Scalar( 0, 255, 0));
-				imshow("x", tmp);
+				drawRect();
 			}  
 			break;  
 	}
 }
 
-bool keyIsValid(int key, vector<int> validKeyList = {83, 81, 27, 10}){
+bool keyIsValid(int key, vector<int> validKeyList = {83, 81, 27, 10, 8}){
 	for (int i=0; i<validKeyList.size(); ++i)
 		if (validKeyList[i] == key)
 			return true;
@@ -144,8 +160,8 @@ void showUI(vector<Mat> &imgList){
 		}
 
 		double scale = 800.0 / img.rows;
-		int rows = (int) (img.rows * scale);
-		int cols = (int) (img.cols * scale);
+		double rows =  (img.rows * scale);
+		double cols =  (img.cols * scale);
 		Size size(cols, rows);
 		resize(img, img, size);
 
@@ -169,12 +185,19 @@ void showUI(vector<Mat> &imgList){
 		else if (key == 27)
 			break;
 		else if (key == 10 && ok){
-			Rect rect((int) (min(start.x, finish.x) / scale), 
-					  (int) (min(start.y, finish.y) / scale), 
-					  (int) (abs(start.x-finish.x) / scale), 
-					  (int) (abs(start.y-finish.y) / scale));
+			Rect rect( (min(start.x, finish.x) / scale), 
+					(min(start.y, finish.y) / scale), 
+					(abs(start.x-finish.x) / scale), 
+					(abs(start.y-finish.y) / scale));
 			rectList[idx].push_back(rect);
+		} else if (key == 8) {
+			if (ok)
+				ok = 0;
+			else if (rectList[idx].size()>0)
+				rectList[idx].pop_back();
 		}
+
+		saveRectList();
 
 	}
 }
