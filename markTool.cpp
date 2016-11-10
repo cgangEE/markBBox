@@ -26,15 +26,17 @@ inline bool fileExist (const std::string& name) {
 	}   
 }
 
-bool readFromFile(vector<Mat> &imgList){
+bool readFromFile(vector<Mat> &imgList, int &savedIdx){
 	FILE *f = NULL;
 
 	for (int i=0; i<10; ++i){
 		string savedName = "data";
 		savedName.push_back('0'+i);
-		if (fileExist(savedName))
+		if (fileExist(savedName)){
 			f = fopen(savedName.c_str(), "rb");
-		break;
+			savedIdx = i;
+			break;
+		}
 	}
 	if (f==NULL)
 		return false;
@@ -54,6 +56,7 @@ bool readFromFile(vector<Mat> &imgList){
 
 		imgList.push_back(img);
 	}
+	fclose(f);
 	return true;
 }
 
@@ -71,11 +74,48 @@ Point finish;
 Mat img;
 vector<vector<Rect> > rectList;
 int idx = 0;
+string windowName;
 
-void saveRectList(){
+void saveRectList(int savedIdx){
+	string savedName = "rect";
+	savedName.push_back('0' + savedIdx);
+	FILE *f = fopen(savedName.c_str(), "wb");
 
+	int n = rectList.size();
+	fwrite(&n, sizeof(n), 1, f);
+
+	for (int i=0; i<n; ++i){
+		int m = rectList[i].size();
+		fwrite(&m, sizeof(m), 1, f);
+		for (int j=0; j<m; ++j)
+			fwrite(&rectList[i][j], sizeof(rectList[i][j]), 1, f);
+	}
+	fclose(f);
 }
 
+
+void readRectList(int savedIdx, int imgCnt){
+	string savedName = "rect";
+	savedName.push_back('0' + savedIdx);
+	if (!fileExist(savedName)){
+		rectList = vector<vector<Rect> >(imgCnt);
+		return;
+	}
+
+	FILE *f = fopen(savedName.c_str(), "rb");
+	int n;
+
+	fread(&n, sizeof(n), 1, f);
+	rectList = vector<vector<Rect> >(n);
+	for (int i=0; i<n; ++i){
+		int m;
+		fread(&m, sizeof(m), 1, f);
+		rectList[i] = vector<Rect>(m);
+		for (int j=0; j<m; ++j)
+			fread(&rectList[i][j], sizeof(rectList[i][j]), 1, f);
+	}
+	fclose(f);
+}
 
 void drawRect(){
 	Mat tmp;
@@ -84,7 +124,7 @@ void drawRect(){
 			Point(start.x, start.y),
 			Point(finish.x, finish.y),
 			Scalar( 0, 255, 0));
-	imshow("x", tmp);
+	imshow(windowName, tmp);
 }
 
 void onMouse(int event, int x, int y, int flags, void *param){  
@@ -120,9 +160,7 @@ void onMouse(int event, int x, int y, int flags, void *param){
 		case CV_EVENT_LBUTTONUP:           
 			if (abs(start.x - finish.x)>0 && abs(start.y - finish.y)>0){
 				ok = 1;
-				puts("FT");
 			}
-
 			draw = false;  
 			break;  
 		case CV_EVENT_MOUSEMOVE:  
@@ -142,10 +180,10 @@ bool keyIsValid(int key, vector<int> validKeyList = {83, 81, 27, 10, 8}){
 	return false;
 }
 
-void showUI(vector<Mat> &imgList){
-	namedWindow("x");
+void showUI(vector<Mat> &imgList, int savedIdx){
 
 	int n = imgList.size();
+	char buf[100];
 
 	for (;;){
 		imgList[idx].copyTo(img);
@@ -160,21 +198,30 @@ void showUI(vector<Mat> &imgList){
 		}
 
 		double scale = 800.0 / img.rows;
-		double rows =  (img.rows * scale);
-		double cols =  (img.cols * scale);
+		int rows =  round(img.rows * scale);
+		int cols =  round(img.cols * scale);
 		Size size(cols, rows);
 		resize(img, img, size);
 
-		imshow("x", img);
+
+		destroyAllWindows();
+
+		sprintf(buf, "Image %d, Rect %lu", idx+1, rectList[idx].size());
+		windowName = buf;
+
+		namedWindow(windowName);
+		moveWindow(windowName, 0, 0);
+
+		imshow(windowName, img);
 
 		ok = 0;
-		setMouseCallback("x", onMouse, NULL); 
+		setMouseCallback(windowName, onMouse, NULL); 
 
 
 		int key;
 		for(;;){
 			key = waitKey() & 0xff;
-			cout<<key<<endl;
+//			cout<<key<<endl;
 			if (keyIsValid(key))
 				break;
 		}
@@ -185,10 +232,10 @@ void showUI(vector<Mat> &imgList){
 		else if (key == 27)
 			break;
 		else if (key == 10 && ok){
-			Rect rect( (min(start.x, finish.x) / scale), 
-					(min(start.y, finish.y) / scale), 
-					(abs(start.x-finish.x) / scale), 
-					(abs(start.y-finish.y) / scale));
+			Rect rect( round(min(start.x, finish.x) / scale), 
+					round(min(start.y, finish.y) / scale), 
+					round(abs(start.x-finish.x) / scale), 
+					round(abs(start.y-finish.y) / scale));
 			rectList[idx].push_back(rect);
 		} else if (key == 8) {
 			if (ok)
@@ -197,7 +244,8 @@ void showUI(vector<Mat> &imgList){
 				rectList[idx].pop_back();
 		}
 
-		saveRectList();
+
+		saveRectList(savedIdx);
 
 	}
 }
@@ -205,11 +253,16 @@ void showUI(vector<Mat> &imgList){
 int main(){
 
 	vector<Mat> imgList;
-	readFromFile(imgList);
-	cout<<imgList.size()<<endl;
+	int savedIdx;
+	if (!readFromFile(imgList, savedIdx)){
+		puts("Cannot find data file!");
+		return -1;
+	}
 
-	rectList = vector<vector<Rect> >(imgList.size());
-	showUI(imgList);
+
+	readRectList(savedIdx, imgList.size());
+
+	showUI(imgList, savedIdx);
 
 	return 0;
 }
