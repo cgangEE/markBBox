@@ -135,6 +135,7 @@ void readRectList(int savedIdx, int imgCnt){
 #define BLUE (Scalar(255, 0, 0))
 #define GREEN (Scalar(0, 255, 0))
 #define FONT FONT_HERSHEY_PLAIN
+#define RECT_SIZE 1.5
 
 void drawRect(Scalar color){
 	Mat tmp;
@@ -143,7 +144,7 @@ void drawRect(Scalar color){
 		rectangle(tmp,
 			Point(start.x, start.y),
 			Point(finish.x, finish.y),
-			color, 2);
+			color, RECT_SIZE);
 	if (ok == 1)
 		circle(tmp, start, 3, color);
 	imshow(windowName, tmp);
@@ -194,7 +195,8 @@ void initClassList(){
 		"Abstract Body Parts", 
 		"Skulls", 
 		"Miscellaneous Human Forms"};
-	classList[2] = {"Cats & Cat Heads",
+	classList[2] = {
+		"Cats & Cat Heads",
 		"Dogs & Dog Heads",
 		"Other Domestic Animals",
 		"Vicious Animals (Lions, Tigers, etc.)",
@@ -207,7 +209,8 @@ void initClassList(){
 		"Abstract Animals",
 		"Animal Parts",
 		"Miscellaneous Animal Forms"};
-	classList[3] = {"Narcotics",
+	classList[3] = {
+		"Narcotics",
 		"Red Flowers",
 		"Blue Flowers",
 		"Yellow Flowers",
@@ -216,13 +219,15 @@ void initClassList(){
 		"Tulip",
 		"Lily",
 		"Miscellaneous Plants, Flowers, Vegetables"};
-	classList[4] = {"American Flag",
+	classList[4] = {
+		"American Flag",
 		"State Flag",
 		"Nazi Flag",
 		"Confederate Flag",
 		"British Flag",
 		"Miscellaneous Flags"};
-	classList[5] = {"Fire",
+	classList[5] = {
+		"Fire",
 		"Weapons (Guns, Arrows, etc.)",
 		"Airplanes",
 		"Boats, Ships, and Other",
@@ -273,7 +278,7 @@ void drawRect(Scalar color, vector<string> list, const char *classStr){
 	rectangle(tmp,
 			Point(start.x, start.y),
 			Point(finish.x, finish.y),
-			color, 2);
+			color, RECT_SIZE);
 	imshow(windowName, tmp);
 }
 
