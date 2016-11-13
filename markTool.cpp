@@ -142,9 +142,9 @@ void drawRect(Scalar color){
 	img.copyTo(tmp);
 	if (ok == 2)
 		rectangle(tmp,
-			Point(start.x, start.y),
-			Point(finish.x, finish.y),
-			color, RECT_SIZE);
+				Point(start.x, start.y),
+				Point(finish.x, finish.y),
+				color, RECT_SIZE);
 	if (ok == 1)
 		circle(tmp, start, 3, color);
 	imshow(windowName, tmp);
@@ -166,6 +166,21 @@ void onMouse(int event, int x, int y, int flags, void *param){
 				finish = Point(x, y);
 		}
 		drawRect(RED);
+	} else if (event == CV_EVENT_MOUSEMOVE) {
+		Mat tmp;
+		img.copyTo(tmp);
+		if (ok == 2)
+			rectangle(tmp,
+					Point(start.x, start.y),
+					Point(finish.x, finish.y),
+					RED, RECT_SIZE);
+		if (ok == 1)
+			circle(tmp, start, 3, RED, 3);
+		if (x>=0 && y>=0 && x<img.cols && y<img.rows){
+			line(tmp, Point(x, 0), Point(x, img.rows-1), GREEN, 1, 4);
+			line(tmp, Point(0, y), Point(img.cols-1, y), GREEN, 1, 4);
+		}
+		imshow(windowName, tmp);
 	}
 }
 
