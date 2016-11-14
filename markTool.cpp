@@ -194,7 +194,7 @@ void initClassList(){
 		"Flags", 
 		"Objects",
 		"Abstractions", 
-		"Insignias & Symbols", 
+		"Symbols", 
 		"Other Images"};
 	classList[1] = {
 		"Male Face", 
