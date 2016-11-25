@@ -305,7 +305,7 @@ bool getType(pair<int,int> &tattooType){
 		drawRect(GREEN, classList[idx], idx==0?"Class":"SubClass");
 		char key = waitKey() & 0xff;
 		char *pos = strchr(num, key);
-		if (pos != NULL){
+		if (pos != NULL && pos - num + 1 <= classList[idx].size()){
 			if (idx == 0){
 				idx = pos - num + 1;
 				tattooType.first = idx;
