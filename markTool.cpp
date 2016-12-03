@@ -345,11 +345,13 @@ void showUI(vector<Mat> &imgList, int savedIdx){
 					Point(rect.x + rect.width, rect.y + rect.height),
 					BLUE);
 
+			typeName.second = min(typeName.second, (int)classList[typeName.first].size());
+
 			putText(img, classList[0][typeName.first-1], Point(rect.x+10, rect.y+15), FONT, 1, GREEN);
 			putText(img, classList[typeName.first][typeName.second-1], Point(rect.x+10, rect.y+35), FONT, 1, GREEN);
 		}
 
-		double scale = 700.0 / img.rows;
+		double scale = min(700.0 / img.rows, 1200.0 / img.cols);
 		int rows =  round(img.rows * scale);
 		int cols =  round(img.cols * scale);
 		Size size(cols, rows);
