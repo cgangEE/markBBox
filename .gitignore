@@ -1,6 +1,10 @@
-data*
 Flickr/*
 *.swp
 *.zip
 cgangee/*
+dataDir/*
+document/*
+rectBefore1008/*
+*.rar
+data*
 rect*
